@@ -21,7 +21,7 @@ public class CallMyStringList {
         System.out.println(Arrays.toString(myStringList.toArray()));
 
 
-        myStringList.expand();
+        myStringList.doubleSize();
         System.out.println("myStringList.size() = " + myStringList.size());
 
         String[] arr = myStringList.toArray();

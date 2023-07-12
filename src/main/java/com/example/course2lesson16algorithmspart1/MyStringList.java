@@ -84,7 +84,7 @@ public class MyStringList implements StringList {
     @Override
     public String remove(String item) {
         checkItem(item);
-        String result = "";
+        String result = null;
         int index = indexOf(item);
         if (index >= 0) {
             IntStream.iterate(index, i -> i < count - 1, i -> i + 1).forEach(i -> storage[i] = storage[i + 1]);
@@ -188,18 +188,21 @@ public class MyStringList implements StringList {
         return newStorage;
     }
 
-    public MyStringList expand(MyStringList myStringList) {
-
+    public static MyStringList doubleSize(MyStringList myStringList) {
         MyStringList newStringList = new MyStringList(myStringList.size() * 2);
-
-        IntStream.iterate(0, i -> i < count, i -> i + 1).forEach(i -> newStringList.add(myStringList.get(i)));
-
+        IntStream.iterate(0, i -> i < myStringList.count, i -> i + 1).forEach(i -> newStringList.add(myStringList.get(i)));
         return newStringList;
-
     }
 
-    public void expand() {
+    public void doubleSize() {
         String[] newStorage = new String[capacity * 2];
+        IntStream.iterate(0, i -> i < count, i -> i + 1).forEach(i -> newStorage[i] = storage[i]);
+        storage = newStorage;
+        capacity = storage.length;
+    }
+
+    public void expand(int expansionSize) {
+        String[] newStorage = new String[capacity + expansionSize];
         IntStream.iterate(0, i -> i < count, i -> i + 1).forEach(i -> newStorage[i] = storage[i]);
         storage = newStorage;
         capacity = storage.length;
