@@ -160,7 +160,6 @@ public class MyStringList implements StringList {
             if (!storage[i].equals(otherList.get(i))) {
                 return false;
             }
-            ;
         }
         return true;
     }

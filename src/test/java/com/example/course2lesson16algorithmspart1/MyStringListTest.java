@@ -4,7 +4,6 @@ import com.thedeanda.lorem.LoremIpsum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -64,9 +63,6 @@ public class MyStringListTest {
         int capacity = getRandom().nextInt(2, 100);
         int count = getRandom().nextInt(1, capacity);
 
-        System.out.println("capacity = " + capacity);
-        System.out.println("count = " + count);
-
         MyStringList myStringList = new MyStringList(capacity);
 
         int[] arr = new int[count];
@@ -110,9 +106,6 @@ public class MyStringListTest {
         myStringList.expand(1);
 
         int index = getRandom().nextInt(0, 9);
-        System.out.println("index = " + index);
-        System.out.println("myStringList.size() = " + myStringList.size());
-        System.out.println("myStringList.getCount() = " + myStringList.getCount());
 
         String expected = loremIpsum().getWords(getRandom().nextInt(1, 5));
 
@@ -151,7 +144,7 @@ public class MyStringListTest {
         String expected = fixedWordSet10().get(index);
         assertTrue(myStringList.indexOf(expected) >= 0);
         assertEquals(expected, myStringList.remove(expected));
-        assertEquals(null, myStringList.remove(expected));
+        assertNull(myStringList.remove(expected));
         assertEquals(-1, myStringList.indexOf(expected));
     }
 
@@ -178,12 +171,6 @@ public class MyStringListTest {
         return myStringList;
 
     }
-
-    @Test
-    public void randomSetOfStringsTest() {
-        System.out.println(Arrays.toString(randomSetOfStrings(getRandom().nextInt(5, 10)).toArray()));
-    }
-
 
     @Test
     public void containsTest() {
@@ -215,7 +202,6 @@ public class MyStringListTest {
         for (int i = 1; i <= indexCount; i++) {
 
             indexes[i] = getRandom().nextInt(indexes[i - 1] + 1, mySL.getCount() - 1);
-            System.out.println("indexOfTest: index = " + indexes[i]);
             mySL.set(indexes[i], testString);
         }
 
@@ -224,9 +210,6 @@ public class MyStringListTest {
     }
 
     private MyStringList getRandomStringListAndPutTestPattern(int capacity, String testPattern, int testPatternTimes) {
-
-        System.out.println("testPattern = " + testPattern);
-
         if (capacity < testPatternTimes & testPatternTimes < 1) {
             throw new MyStringListException("getRandomStringListAndPutTestPattern parameters invalid");
         }
@@ -244,8 +227,6 @@ public class MyStringListTest {
             indexes[i] = getRandom().nextInt(indexes[i - 1] + 1, mySL.getCount() - 1);
             mySL.set(indexes[i], testPattern);
         }
-        System.out.println("Arrays.toString(mySL.toArray()) = " + Arrays.toString(mySL.toArray()));
-
         return mySL;
     }
 
@@ -274,7 +255,74 @@ public class MyStringListTest {
         }
 
         assertEquals(myStringList.lastIndexOf(missingPattern), -1);
+    }
 
+    @Test
+    public void getTest() {
+        MyStringList mySL = randomSetOfStrings(getRandom().nextInt(5, 50));
+        String[] array = mySL.toArray();
+        int index = getRandom().nextInt(0, mySL.getCount() - 1);
+
+        assertEquals(array[index], mySL.get(index));
+
+        int capacity = getRandom().nextInt(10, 100);
+        mySL = getMyStringList(capacity);
+        MyStringList finalMySL = mySL;
+        IntStream.iterate(0, i -> i < capacity, i -> i + 1).forEach(i ->
+                finalMySL.add(loremIpsum().getWords(getRandom().nextInt(1, 5))));
+
+        String testString = loremIpsum().getWords(6, 10);
+        index = getRandom().nextInt(0, mySL.getCount() - 1);
+        String returnedString = mySL.set(index, testString);
+        assertEquals(testString, returnedString);
+        assertEquals(testString, mySL.get(index));
+
+        assertThrows(MyStringListException.class, () -> finalMySL.get(-1));
+        assertThrows(MyStringListException.class, () -> finalMySL.get(finalMySL.size()));
+    }
+
+    @Test
+    public void equalsTest() {
+        MyStringList testSpringList = randomSetOfStrings(getRandom().nextInt(10, 100));
+        MyStringList sameSpringList = testSpringList;
+        assertTrue(testSpringList.equals(sameSpringList));
+        assertNotEquals(testSpringList, sameSpringList.remove(0));
+    }
+
+    @Test
+    public void sizeTest() {
+        int testSize = getRandom().nextInt(10, 100);
+        MyStringList myStringList = getMyStringList(testSize);
+        assertEquals(testSize, myStringList.size());
+    }
+
+    @Test
+    public void isEmptyTest() {
+        MyStringList emptyStringList = getMyStringList(100);
+        assertTrue(emptyStringList.isEmpty());
+        MyStringList notEmptyStringList = randomSetOfStrings(10);
+        assertFalse(notEmptyStringList.isEmpty());
+    }
+
+    @Test
+    public void clearTest() {
+        MyStringList testStringList = randomSetOfStrings(100);
+        assertFalse(testStringList.isEmpty());
+        testStringList.clear();
+        assertTrue(testStringList.isEmpty());
+    }
+
+    @Test
+    public void toArrayTest() {
+        int capacity = getRandom().nextInt(10, 100);
+        MyStringList testStringList = randomSetOfStrings(capacity);
+        String[] testArray = testStringList.toArray();
+        assertEquals(capacity, testArray.length);
+        MyStringList checkStringList = getMyStringList(capacity);
+        for (String s : testArray) {
+            checkStringList.add(s);
+        }
+        assertTrue(testStringList.equals(checkStringList));
     }
 
     private Random getRandom() {
@@ -283,8 +331,9 @@ public class MyStringListTest {
 
     private class DataForIndexMethodChecking {
         private MyStringList myStringList;
+        private String testPattern;
         private int[] indexes;
-        String testPattern;
+
     }
 }
 
