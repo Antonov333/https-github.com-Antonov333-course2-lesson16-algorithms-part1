@@ -4,15 +4,14 @@ import com.thedeanda.lorem.LoremIpsum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.Random;
+import java.util.stream.IntStream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class MyStringListTest {
-
-    private MyStringList myStringList = new MyStringList(10);
 
     private static MyStringList fixedWordSet10() {
         MyStringList wordSet = new MyStringList(10);
@@ -128,8 +127,164 @@ public class MyStringListTest {
 
     }
 
+    @Test
+    public void setTest() {
+        String expectedOnException = "Expected On Exception";
+        MyStringList myStringList = fixedWordSet10();
+        assertThrows(MyStringListException.class, () -> myStringList.set(-1, expectedOnException));
+        assertThrows(MyStringListException.class, () -> myStringList.set(myStringList.size(), expectedOnException));
+
+        int index = getRandom().nextInt(0, 9);
+        String expected = "My New String";
+        assertEquals(expected, myStringList.set(index, expected));
+        assertEquals(expected, myStringList.get(index));
+
+    }
+
+    @Test
+    public void removeByStringTest() {
+        final MyStringList myStringList = fixedWordSet10();
+
+        assertThrows(MyStringListException.class, () -> myStringList.remove(null));
+
+        int index = getRandom().nextInt(0, 9);
+        String expected = fixedWordSet10().get(index);
+        assertTrue(myStringList.indexOf(expected) >= 0);
+        assertEquals(expected, myStringList.remove(expected));
+        assertEquals(null, myStringList.remove(expected));
+        assertEquals(-1, myStringList.indexOf(expected));
+    }
+
+    @Test
+    public void removeByIndexTest() {
+        final MyStringList myStringList = fixedWordSet10();
+
+        assertThrows(MyStringListException.class, () -> myStringList.remove(-1));
+        assertThrows(MyStringListException.class, () -> myStringList.remove(myStringList.getCount() + 1));
+
+        int index = getRandom().nextInt(0, 9);
+
+        String expected = myStringList.get(index);
+
+        assertEquals(expected, myStringList.remove(index));
+        assertEquals(-1, myStringList.indexOf(expected));
+    }
+
+    private MyStringList randomSetOfStrings(int capacity) {
+        MyStringList myStringList = getMyStringList(capacity);
+        IntStream.iterate(0, i -> i < capacity, i -> i + 1).forEach(i ->
+                myStringList.add(loremIpsum().getWords(getRandom().nextInt(1, 5))));
+
+        return myStringList;
+
+    }
+
+    @Test
+    public void randomSetOfStringsTest() {
+        System.out.println(Arrays.toString(randomSetOfStrings(getRandom().nextInt(5, 10)).toArray()));
+    }
+
+
+    @Test
+    public void containsTest() {
+        final MyStringList myStringList = randomSetOfStrings(getRandom().nextInt(10, 100));
+        int index = getRandom().nextInt(0, myStringList.getCount() - 1);
+        String testString = myStringList.get(index);
+
+        assertTrue(myStringList.contains(testString));
+
+        myStringList.remove(index);
+        assertFalse(myStringList.contains(testString));
+
+        assertThrows(MyStringListException.class, () -> myStringList.contains(null));
+    }
+
+    @Test
+    public void indexOfTest() {
+        MyStringList mySL = randomSetOfStrings(50);
+        String testString;
+
+        do {
+            testString = loremIpsum().getWords(3);
+        }
+        while (mySL.contains(testString));
+
+        int indexCount = 3;
+        int[] indexes = new int[indexCount + 1];
+        indexes[0] = -1;
+        for (int i = 1; i <= indexCount; i++) {
+
+            indexes[i] = getRandom().nextInt(indexes[i - 1] + 1, mySL.getCount() - 1);
+            System.out.println("indexOfTest: index = " + indexes[i]);
+            mySL.set(indexes[i], testString);
+        }
+
+        assertEquals(indexes[1], mySL.indexOf(testString));
+
+    }
+
+    private MyStringList getRandomStringListAndPutTestPattern(int capacity, String testPattern, int testPatternTimes) {
+
+        System.out.println("testPattern = " + testPattern);
+
+        if (capacity < testPatternTimes & testPatternTimes < 1) {
+            throw new MyStringListException("getRandomStringListAndPutTestPattern parameters invalid");
+        }
+
+        MyStringList mySL = randomSetOfStrings(capacity);
+
+        while (mySL.contains(testPattern)) {
+            mySL = randomSetOfStrings(capacity);
+        }
+
+        int indexCount = testPatternTimes;
+        int[] indexes = new int[indexCount + 1];
+        indexes[0] = -1;
+        for (int i = 1; i <= indexCount; i++) {
+            indexes[i] = getRandom().nextInt(indexes[i - 1] + 1, mySL.getCount() - 1);
+            mySL.set(indexes[i], testPattern);
+        }
+        System.out.println("Arrays.toString(mySL.toArray()) = " + Arrays.toString(mySL.toArray()));
+
+        return mySL;
+    }
+
+    @Test
+    public void lastIndexOfTest() {
+        MyStringList myStringList = randomSetOfStrings(15);
+        int firstTestPatternPosition = getRandom().nextInt(0, 5);
+        int middleTestPatterPosition = getRandom().nextInt(6, 10);
+        int lastTestPatternPosition = getRandom().nextInt(11, 15);
+
+        String testPattern = loremIpsum().getWords(5, 10);
+
+        while (myStringList.contains(testPattern)) {
+            myStringList = randomSetOfStrings(15);
+        }
+
+        myStringList.set(firstTestPatternPosition, testPattern);
+        myStringList.set(middleTestPatterPosition, testPattern);
+        myStringList.set(lastTestPatternPosition, testPattern);
+
+        assertEquals(lastTestPatternPosition, myStringList.lastIndexOf(testPattern));
+
+        String missingPattern = loremIpsum().getWords(4, 5);
+        while (myStringList.contains(missingPattern)) {
+            myStringList = randomSetOfStrings(15);
+        }
+
+        assertEquals(myStringList.lastIndexOf(missingPattern), -1);
+
+    }
+
     private Random getRandom() {
         return new Random();
+    }
+
+    private class DataForIndexMethodChecking {
+        private MyStringList myStringList;
+        private int[] indexes;
+        String testPattern;
     }
 }
 

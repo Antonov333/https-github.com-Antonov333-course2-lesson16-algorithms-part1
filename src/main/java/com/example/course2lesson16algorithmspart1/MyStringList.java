@@ -99,7 +99,9 @@ public class MyStringList implements StringList {
     public String remove(int index) {
         checkIndex(index);
         String result = storage[index];
-
+        IntStream.iterate(index, i -> i < count - 1, i -> i + 1).forEach(i -> storage[i] = storage[i + 1]);
+        storage[count - 1] = null;
+        count--;
         return result;
     }
 
